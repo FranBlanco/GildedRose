@@ -4,7 +4,15 @@ import java.util.List;
 
 public class GildedRose {
 
-	private static List<Item> items = null;
+    public static final int MINIMUM_QUALITY = 0;
+    public static final int MAX_QUALITY = 50;
+    public static final int MINIMUN_SELLIN = 0;
+    public static final int RESET_QUALITY = 0;
+    public static final int SELLIN = 1;
+    public static final int QUALITY = 1;
+    public static final int FIRST_THRESHOLD_SELLIN = 10;
+    public static final int SECOND_THRESHOLD_SELLIN = 5;
+    private static List<Item> items = null;
 
 	/**
 	 * @param args
@@ -28,56 +36,82 @@ public class GildedRose {
 	
     public static void updateQuality(){
         for (int i = 0; i < items.size(); i++){
-            if ((!"Aged Brie".equals(items.get(i).getName())) && !"Backstage passes to a TAFKAL80ETC concert".equals(items.get(i).getName())){
-                if (items.get(i).getQuality() > 0){
-                    if (!"Sulfuras, Hand of Ragnaros".equals(items.get(i).getName())){
-                        items.get(i).setQuality(items.get(i).getQuality() - 1);
+
+            Item current = items.get(i);
+            int itemQuality = current.getQuality();
+            boolean hasSomeQuality = itemQuality > MINIMUM_QUALITY;
+            String currentItemName = current.getName();
+            boolean notBrie = !"Aged Brie".equals(currentItemName);
+            boolean isItPass = "Backstage passes to a TAFKAL80ETC concert".equals(currentItemName);
+            boolean notPasses = !isItPass;
+            boolean norBrieEitherPasses = notBrie && notPasses;
+            boolean notSulfuras = !"Sulfuras, Hand of Ragnaros".equals(currentItemName);
+            boolean qualityNotReached = itemQuality < MAX_QUALITY;
+
+
+            if (norBrieEitherPasses){
+                if (hasSomeQuality){
+                    if (notSulfuras){
+                        decreaseQuality(current);
                     }
                 }
             }
-            else            {
-                if (items.get(i).getQuality() < 50){
-                    items.get(i).setQuality(items.get(i).getQuality() + 1);
-                    if ("Backstage passes to a TAFKAL80ETC concert".equals(items.get(i).getName())){
-                        if (items.get(i).getSellIn() < 11){
-                            if (items.get(i).getQuality() < 50){
-                                items.get(i).setQuality(items.get(i).getQuality() + 1);
+            else {
+                if (qualityNotReached){
+                    increaseQuality(current);
+                    if (isItPass){
+                        if (current.getSellIn() <= FIRST_THRESHOLD_SELLIN){
+                            if (qualityNotReached){
+                                current.setQuality(itemQuality + QUALITY);
+                                increaseQuality(current);
                             }
                         }
 
-                        if (items.get(i).getSellIn() < 6){
-                            if (items.get(i).getQuality() < 50){
-                                items.get(i).setQuality(items.get(i).getQuality() + 1);
+                        if (current.getSellIn() <= SECOND_THRESHOLD_SELLIN){
+                            if (qualityNotReached){
+                                increaseQuality(current);
                             }
                         }
                     }
                 }
             }
 
-            if (!"Sulfuras, Hand of Ragnaros".equals(items.get(i).getName())){
-                items.get(i).setSellIn(items.get(i).getSellIn() - 1);
+            if (notSulfuras){
+                decreaseSellIn(current);
             }
 
-            if (items.get(i).getSellIn() < 0){
-                if (!"Aged Brie".equals(items.get(i).getName())){
-                    if (!"Backstage passes to a TAFKAL80ETC concert".equals(items.get(i).getName())){
-                        if (items.get(i).getQuality() > 0){
-                            if (!"Sulfuras, Hand of Ragnaros".equals(items.get(i).getName())){
-                                items.get(i).setQuality(items.get(i).getQuality() - 1);
+            if (current.getSellIn() < MINIMUN_SELLIN){
+                if (notBrie){
+                    if (notPasses){
+                        if (itemQuality > MINIMUM_QUALITY){
+                            if (notSulfuras){
+                                decreaseQuality(current);
                             }
                         }
                     }
                     else{
-                        items.get(i).setQuality(items.get(i).getQuality() - items.get(i).getQuality());
+                        current.setQuality(RESET_QUALITY);
                     }
                 }
                 else{
-                    if (items.get(i).getQuality() < 50){
-                        items.get(i).setQuality(items.get(i).getQuality() + 1);
+                    if (itemQuality < MAX_QUALITY){
+                        increaseQuality(current);
                     }
                 }
             }
         }
+    }
+
+    private static void decreaseSellIn(Item current) {
+        current.setSellIn(current.getSellIn() - SELLIN);
+    }
+
+    private static void decreaseQuality(Item current){
+        current.setQuality(current.getQuality() - QUALITY);
+    }
+
+    private static void increaseQuality(Item current) {
+        current.setQuality(current.getQuality() + QUALITY);
     }
 
 }
